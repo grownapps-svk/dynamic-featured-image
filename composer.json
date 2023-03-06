@@ -1,5 +1,5 @@
 {
-  "name": "qvera/dynamic-featured-image",
+  "name": "grownapps-svk/dynamic-featured-image",
   "description": "Dynamically adds multiple featured image (post thumbnail) functionality to posts, pages and custom post types.",
   "keywords": [
     "dynamic featured image",
@@ -7,8 +7,17 @@
     "multiple post thumbnails",
     "wordpress plugin"
   ],
+  "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+	"prefer-stable": true,
   "authors": [
+    {
+      "name": "Maros Dovec",
+      "email": "maros@grownapps.io",
+      "homepage": "https://grownapps.io",
+      "role": "Developer"
+    },
     {
       "name": "Ankit Pokhrel",
       "email": "hello@ankit.pl",

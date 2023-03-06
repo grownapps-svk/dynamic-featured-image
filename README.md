@@ -1,15 +1,6 @@
-[![Latest Stable Version](https://img.shields.io/wordpress/plugin/v/dynamic-featured-image.svg?style=flat-square)](https://packagist.org/packages/ankitpokhrel/Dynamic-Featured-Image)
-[![WordPress](https://img.shields.io/wordpress/v/dynamic-featured-image.svg?style=flat-square)](https://wordpress.org/plugins/dynamic-featured-image/)
-[![WordPress Rating](https://img.shields.io/wordpress/plugin/r/dynamic-featured-image.svg?style=flat-square)](https://wordpress.org/plugins/dynamic-featured-image/)
 [![License](https://img.shields.io/packagist/l/ankitpokhrel/dynamic-featured-image.svg?style=flat-square)](https://packagist.org/packages/ankitpokhrel/dynamic-featured-image)
 
-## Dynamic Featured Image (A WordPress Plugin)
-
-> This project is no longer actively maintained.
-
-[![Download](https://img.shields.io/wordpress/plugin/dt/dynamic-featured-image.svg?style=flat-square)](https://wordpress.org/plugins/dynamic-featured-image)
-[![Build](https://img.shields.io/travis/ankitpokhrel/Dynamic-Featured-Image.svg?style=flat-square)](https://travis-ci.org/ankitpokhrel/Dynamic-Featured-Image)
-[![Code Coverage](https://img.shields.io/scrutinizer/coverage/g/ankitpokhrel/Dynamic-Featured-Image.svg?style=flat-square)](https://scrutinizer-ci.com/g/ankitpokhrel/Dynamic-Featured-Image/)
+## Dynamic Featured Image (A WordPress Plugin - Grownapps Edit)
 
 _Dynamically adds multiple featured image (post thumbnail) functionality to posts, pages and custom post types._
 
@@ -22,9 +13,9 @@ Why limit yourself to only one featured image if you can do some awesome stuffs 
   2. Activate the plugin through the `Plugins` menu in WordPress.
   3. If you don't see new featured image box, click `Screen Options` in the upper right corner of your wordpress admin and make sure that the `Featured Image 2` box is selected.
 
-### Bower
+### WP-Cli
 ```
-bower install dynamic-featured-image
+wp plugin install grownapps-svk/dynamic-featured-image
 ```
 
 ### How it works?
@@ -45,15 +36,12 @@ bower install dynamic-featured-image
 
 ###### _Note: The featured images are only saved when you publish or update the post._
 
-### Documentation
-* [Retrieving images in a theme](https://github.com/ankitpokhrel/Dynamic-Featured-Image/wiki/Retrieving-data-in-a-theme)
-* [Getting image title, alt and caption attributes](https://github.com/ankitpokhrel/Dynamic-Featured-Image/wiki/API-Functions#wiki-getting-image-title-alt-and-caption-attributes)
-* [API](https://github.com/ankitpokhrel/Dynamic-Featured-Image/wiki/API)
-
-### Other Resources
-* [Blog](https://ankitpokhrel.com/explore/category/dynamic-featured-image/)
-* [FAQs](https://wordpress.org/plugins/dynamic-featured-image/faq/)
-* [StackOverflow Tag](https://stackoverflow.com/questions/tagged/dynamic-featured-image)
+#### Some custom functionality added
+1. You can now call ``add_filter('dfi_set_metabox_title', ...)`` and return array of strings, which will be distributed as titles of additional images. This is helpful for user as you can set box titles such as:
+  - Facebook image
+  - Hero
+  - etc...
+2. You can now call ``add_filter('dfi_total_featured', ...)`` and set how many additional fields should be added by default.
 
 #### List of Available Functions
 1. [get_image_id( $image_url )](https://github.com/ankitpokhrel/Dynamic-Featured-Image/wiki/API#wiki-1-get_image_id-image_url-)
@@ -78,52 +66,42 @@ bower install dynamic-featured-image
 You can use `dfi_post_types` filter to allow DFI only in a specific post types.
 ```
 function allowed_post_types() {
-    return array('post'); //show DFI only in post
+    return [ 'post' ]; //show DFI only in post
 }
-add_filter('dfi_post_types', 'allowed_post_types');
+add_filter( 'dfi_post_types', 'allowed_post_types' );
 ```
 
 ### Blocking DFI
 Use `dfi_post_type_user_filter` filter to block DFI from post types.
 ```
 function blocked_post_types() {
-    return array('page'); //block DFI in page
+    return [ 'page' ]; //block DFI in page
 }
-add_filter('dfi_post_type_user_filter', 'blocked_post_types');
+add_filter( 'dfi_post_type_user_filter', 'blocked_post_types' );
 ```
 
 ### Changing the metabox default text
 Use `dfi_set_metabox_title` filter to change the metabox default title (Featured Image)
 ```
 function set_metabox_title( $title ) {
-    return "My custom metabox title";
+    return [ "My custom metabox title", "My custom second metabox" ];
 }
-add_filter('dfi_set_metabox_title', 'set_metabox_title');
+add_filter( 'dfi_set_metabox_title', 'set_metabox_title' );
 ```
 
-### Translation Guidelines
-All translations live in the `languages` folder.
+### Changing default number of metaboxes
+Use `dfi_total_featured` filter to change default number of metaboxes shown
+```
+function set_total_featured( $total_featured ) {
+    global $post;
 
-If you are interested in translating the plugin in your language, first make sure if the translation is not already available. The name of the file is important because there’s a particular format you should follow for consistency. For example, if you’re translating Nepali for Nepal, the file should be `dynamic-featured-image-ne_NP.po` – `dynamic-featured-image` for the plugin itself, `ne` for the language and `NP` for the country.
-
-### Development
-1. Install [PHPUnit](https://phpunit.de/) and [composer](https://getcomposer.org/) if you haven't already.
-2. Install required dependencies
-     ```shell
-     $ composer install
-     ```
-3. Build test using installation script
-    ```shell
-    $ ./bin/install-wp-tests.sh <test-db-name> <db-user> <db-pass> [db-host] [wp-version] [skip-database-creation]
-    ```
-4. Run tests with phpunit
-    ```shell
-    $ ./vendor/bin/phpunit
-    ```
-5. Validate changes against [WordPress Coding Standards](https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards)
-    ```shell
-    $ phpcs <dfi-plugin-dir or filename>
-    ```
-
-### Questions about this project?
-Please feel free to report any bug found. Pull requests, issues, and plugin recommendations are more than welcome!
+    // Will show 3 additional fields by default on blog posts
+    if ( $post->post_type === 'post' ) {
+        return 3;
+    }
+    
+    // Use default value
+    return $total_featured;
+}
+add_filter( 'dfi_total_featured', 'set_total_featured' );
+```

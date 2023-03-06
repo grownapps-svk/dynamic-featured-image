@@ -148,7 +148,7 @@ class GADynamicFeaturedImage
         global $post;
 
         // make metabox title dynamic.
-        $this->metaboxTitle = apply_filters( 'dfi_set_metaboxTitle', [ __( 'Featured Image', self::TEXT_DOMAIN ) ] );
+        $this->metaboxTitle = apply_filters( 'dfi_set_metabox_title', [ __( 'Featured Image', self::TEXT_DOMAIN ) ] );
 
         $featured_data  = get_post_meta( $post->ID, 'dfiFeatured', true );
         $total_featured = is_array( $featured_data ) ? count( $featured_data ) : 0;
@@ -156,7 +156,7 @@ class GADynamicFeaturedImage
         $total_featured = apply_filters( 'dfi_total_featured', $total_featured );
         
         $default_filter    = [ 'attachment', 'revision', 'nav_menu_item' ];
-        $this->userFilter = apply_filters( 'dfi_post_type_userFilter', $this->userFilter );
+        $this->userFilter = apply_filters( 'dfi_post_type_user_filter', $this->userFilter );
 
         $post_types = array_diff( get_post_types(), array_merge( $default_filter, $this->userFilter ) );
         $post_types = apply_filters( 'dfi_post_types', $post_types );
@@ -343,14 +343,14 @@ class GADynamicFeaturedImage
         // @codingStandardsIgnoreStart
         echo $this->nonce_field( 'dfi_fimageplug-' . $featured_id );
         ?>
-        <a 
+        <a
             href="javascript:void(0)"
             class="dfiFeaturedImage"
             title="<?php echo __( 'Set Featured Image', self::TEXT_DOMAIN ) ?>"
         >
             <span class="dashicons dashicons-camera"></span>
         </a>
-        <img src="" class="dfiImg dfiImgEmpty"/>
+        <img src="" alt="dynamic-image" class="dfiImg dfiImgEmpty" />
         <div class="dfiLinks">
             <a
                 href="javascript:void(0)"

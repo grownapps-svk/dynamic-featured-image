@@ -215,6 +215,8 @@ class Dynamic_Featured_Image {
         $featured_data  = get_post_meta( $post->ID, 'dfiFeatured', true );
         $total_featured = is_array( $featured_data ) ? count( $featured_data ) : 0;
 
+        $totan_featured = apply_filters( 'dfi_total_featured', $total_featured );
+        
         $default_filter    = array( 'attachment', 'revision', 'nav_menu_item' );
         $this->user_filter = apply_filters( 'dfi_post_type_user_filter', $this->user_filter );
 

@@ -3,14 +3,14 @@
  * Plugin Name: Dynamic Featured Image
  * Plugin URI: http://wordpress.org/plugins/dynamic-featured-image/
  * Description: Dynamically adds multiple featured image or post thumbnail functionality to your posts, pages and custom post types.
- * Version: 3.7.0
- * Author: Ankit Pokhrel
+ * Version: 3.7.1
+ * Author: Ankit Pokhrel, Maros Dovec
  * Author URI: https://ankitpokhrel.com
  * License: GPL2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: dynamic-featured-image
  * Domain Path: /languages
- * GitHub Plugin URI: https://github.com/ankitpokhrel/Dynamic-Featured-Image
+ * GitHub Plugin URI: https://github.com/qvera/Dynamic-Featured-Image
  *
  * @package dynamic-featured-image
  *
@@ -49,7 +49,7 @@ class Dynamic_Featured_Image {
      *
      * @since 3.0.0
      */
-    const VERSION = '3.7.0';
+    const VERSION = '3.7.1';
 
     /**
      * Text domain.
@@ -63,7 +63,7 @@ class Dynamic_Featured_Image {
      *
      * @since 3.6.0
      */
-    const WIKI_LINK = 'https://github.com/ankitpokhrel/Dynamic-Featured-Image/wiki/';
+    const WIKI_LINK = 'https://github.com/qvera/Dynamic-Featured-Image/wiki/';
 
     /**
      * Image upload directory.
@@ -89,7 +89,7 @@ class Dynamic_Featured_Image {
     /**
      * Title for dfi metabox.
      *
-     * @var $metabox_title string
+     * @var $metabox_title array<string>
      */
     protected $metabox_title;
 
@@ -210,12 +210,12 @@ class Dynamic_Featured_Image {
         global $post;
 
         // make metabox title dynamic.
-        $this->metabox_title = apply_filters( 'dfi_set_metabox_title', __( 'Featured Image', self::TEXT_DOMAIN ) );
+        $this->metabox_title = apply_filters( 'dfi_set_metabox_title', [__( 'Featured Image', self::TEXT_DOMAIN )] );
 
         $featured_data  = get_post_meta( $post->ID, 'dfiFeatured', true );
         $total_featured = is_array( $featured_data ) ? count( $featured_data ) : 0;
 
-        $totan_featured = apply_filters( 'dfi_total_featured', $total_featured );
+        $total_featured = apply_filters( 'dfi_total_featured', $total_featured );
         
         $default_filter    = array( 'attachment', 'revision', 'nav_menu_item' );
         $this->user_filter = apply_filters( 'dfi_post_type_user_filter', $this->user_filter );
@@ -223,13 +223,8 @@ class Dynamic_Featured_Image {
         $post_types = array_diff( get_post_types(), array_merge( $default_filter, $this->user_filter ) );
         $post_types = apply_filters( 'dfi_post_types', $post_types );
 
-        if ( ! empty( $featured_data ) && $total_featured >= 1 ) {
-            $i = 2;
-            foreach ( $featured_data as $featured ) {
-                $this->dfi_add_meta_box( $post_types, $featured, $i++ );
-            }
-        } else {
-            $this->dfi_add_meta_box( $post_types );
+        for ($i = 0; $i <= $total_featured; $i++) {
+            $this->dfi_add_meta_box($post_types, $featured_data[$i] ?? null, $i);
         }
     }
 
@@ -268,7 +263,7 @@ class Dynamic_Featured_Image {
             foreach ( $post_types as $type ) {
                 add_meta_box(
                     'dfiFeaturedMetaBox-' . $i,
-                    __( $this->metabox_title, self::TEXT_DOMAIN ) . ' ' . $this->get_number_translation( $i ),
+                    __( $this->metabox_title[$i] ?? $i, self::TEXT_DOMAIN ),
                     array( $this, 'featured_meta_box' ),
                     $type,
                     apply_filters( 'dfi_metabox_context', 'side' ),
@@ -282,7 +277,7 @@ class Dynamic_Featured_Image {
             foreach ( $post_types as $type ) {
                 add_meta_box(
                     'dfiFeaturedMetaBox',
-                    __( $this->metabox_title, self::TEXT_DOMAIN ) . ' ' . __( 2, self::TEXT_DOMAIN ),
+                    __( $this->metabox_title[$i] ?? $i, self::TEXT_DOMAIN ),
                     array( $this, 'featured_meta_box' ),
                     $type,
                     apply_filters( 'dfi_metabox_context', 'side' ),
@@ -397,10 +392,6 @@ class Dynamic_Featured_Image {
 
         return "<a href='javascript:void(0)' class='dfiFeaturedImage{$has_featured_image}' title='" . __( 'Set Featured Image', self::TEXT_DOMAIN ) . "' data-post-id='" . $post_id . "' data-attachment-id='" . $attachment_id . "'><span class='dashicons dashicons-camera'></span></a><br/>
             <img src='" . $thumbnail . "' class='dfiImg {$dfi_empty}'/>
-            <div class='dfiLinks'>
-                <a href='javascript:void(0)' data-id='{$featured_id}' data-id-local='" . $this->get_number_translation( $featured_id + 1 ) . "' class='dfiAddNew dashicons dashicons-plus' title='" . __( 'Add New', self::TEXT_DOMAIN ) . "'></a>
-                <a href='javascript:void(0)' class='dfiRemove dashicons dashicons-minus' title='" . __( 'Remove', self::TEXT_DOMAIN ) . "'></a>
-            </div>
             <div class='dfiClearFloat'></div>
             <input type='hidden' name='dfiFeatured[]' value='{$featured_img}'  class='dfiImageHolder' />";
     }

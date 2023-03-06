@@ -4,7 +4,7 @@
  * Plugin URI: http://wordpress.org/plugins/dynamic-featured-image/
  * Description: Dynamically adds featured images or post thumbnails to your posts, pages and custom post types.
  * Version: 3.7.1
- * Author: Ankit Pokhrel (Original), Maros Dovec (Cleanup & Feature)
+ * Author: Ankit Pokhrel, Maros Dovec
  * Author URI: https://grownapps.io
  * License: GPL2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -66,18 +66,17 @@ class GADynamicFeaturedImage
      *
      * @var string[] $metaboxTitle
      */
-    protected array $metaboxTitle;
+    protected array $metaboxTitle = [];
 
     /**
      * Users post type filter for dfi metabox.
      */
-    protected array $userFilter;
+    protected array $userFilter = [];
 
     /**
      * Constructor. Hooks all interactions to initialize the class.
      */
-    public function __construct(): void
-    {
+    public function __construct() {
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
         add_action( 'add_meta_boxes', [ $this, 'initialize_featured_box' ] );
         add_action( 'save_post', [ $this, 'save_meta' ] );

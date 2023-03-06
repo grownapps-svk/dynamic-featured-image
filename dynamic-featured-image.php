@@ -175,7 +175,7 @@ class GADynamicFeaturedImage
      *
      * @return void
      */
-    private function dfi_add_meta_box( array $post_types, ?object $featured = null, ?int $i = null ): void
+    private function dfi_add_meta_box( $post_types, $featured = null, $i = null ): void
     {
         if ( ! is_null( $i ) ) {
             foreach ( $post_types as $type ) {

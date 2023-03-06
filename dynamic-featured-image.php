@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Dynamic Featured Image
  * Plugin URI: http://wordpress.org/plugins/dynamic-featured-image/
- * Description: Dynamically adds multiple featured image or post thumbnail functionality to your posts, pages and custom post types.
+ * Description: Dynamically adds featured images or post thumbnails to your posts, pages and custom post types.
  * Version: 3.7.1
- * Author: Ankit Pokhrel, Maros Dovec
- * Author URI: https://ankitpokhrel.com
+ * Author: Ankit Pokhrel (Original), Maros Dovec (Cleanup & Feature)
+ * Author URI: https://grownapps.io
  * License: GPL2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: dynamic-featured-image
@@ -13,37 +13,23 @@
  * GitHub Plugin URI: https://github.com/qvera/Dynamic-Featured-Image
  *
  * @package dynamic-featured-image
- *
- * Copyright (C) 2013-2019 Ankit Pokhrel <info@ankitpokhrel.com, https://ankitpokhrel.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // Avoid direct calls to this file.
-if ( ! defined( 'ABSPATH' ) ) {
-    header( 'Status: 403 Forbidden' );
-    header( 'HTTP/1.1 403 Forbidden' );
+if (!defined('ABSPATH')) {
+    header('Status: 403 Forbidden');
+    header('HTTP/1.1 403 Forbidden');
     exit();
 }
 
 /**
- * Dynamic Featured Image plugin main class.
+ * Grownapps Updated Dynamic Featured Image plugin main class.
  *
  * @author Ankit Pokhrel <info@ankitpokhrel.com>
  * @version 3.7.0
  */
-class Dynamic_Featured_Image {
+class GADynamicFeaturedImage
+{
     /**
      * Current version of the plugin.
      *
@@ -59,86 +45,59 @@ class Dynamic_Featured_Image {
     const TEXT_DOMAIN = 'dynamic-featured-image';
 
     /**
-     * Documentation Link.
+     * Image upload directory
      *
-     * @since 3.6.0
+     * @var string[] $uploadDir
      */
-    const WIKI_LINK = 'https://github.com/qvera/Dynamic-Featured-Image/wiki/';
-
-    /**
-     * Image upload directory.
-     *
-     * @var $upload_dir string
-     */
-    private $upload_dir;
+    private array $uploadDir;
 
     /**
      * Image upload URL.
-     *
-     * @var $upload_url string
      */
-    private $upload_url;
+    private string $uploadUrl;
 
     /**
      * Database object.
-     *
-     * @var $db wpdb
      */
-    private $db;
+    private wpdb $db;
 
     /**
      * Title for dfi metabox.
      *
-     * @var $metabox_title array<string>
+     * @var string[] $metaboxTitle
      */
-    protected $metabox_title;
+    protected array $metaboxTitle;
 
     /**
      * Users post type filter for dfi metabox.
-     *
-     * @var $user_filter array
      */
-    protected $user_filter;
+    protected array $userFilter;
 
     /**
      * Constructor. Hooks all interactions to initialize the class.
-     *
-     * @since 1.0.0
-     * @access public
-     * @global object $wpdb
-     *
-     * @see     add_action()
      */
-    public function __construct() {
-        // plugin update warning.
-        add_action( 'in_plugin_update_message-' . plugin_basename( __FILE__ ), array( $this, 'update_notice' ) );
-
-        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-        add_action( 'add_meta_boxes', array( $this, 'initialize_featured_box' ) );
-        add_action( 'save_post', array( $this, 'save_meta' ) );
-        add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
+    public function __construct(): void
+    {
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
+        add_action( 'add_meta_boxes', [ $this, 'initialize_featured_box' ] );
+        add_action( 'save_post', [ $this, 'save_meta' ] );
+        add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 
         // handle ajax request.
-        add_action( 'wp_ajax_dfiMetaBox_callback', array( $this, 'ajax_callback' ) );
+        add_action( 'wp_ajax_dfiMetaBox_callback', [ $this, 'ajax_callback' ] );
 
         // media uploader custom fields.
-        add_filter( 'attachment_fields_to_edit', array( $this, 'media_attachment_custom_fields' ), 10, 2 );
-        add_filter( 'attachment_fields_to_save', array( $this, 'media_attachment_custom_fields_save' ), 10, 2 );
+        add_filter( 'attachment_fields_to_edit', [ $this, 'media_attachment_custom_fields' ], 10, 2 );
+        add_filter( 'attachment_fields_to_save', [ $this, 'media_attachment_custom_fields_save' ], 10, 2 );
 
-        // plugin sponsors.
-        new PluginSponsor();
-
-        // get the site protocol.
-        $protocol = $this->get_protocol();
-
-        $this->upload_dir = wp_upload_dir();
-        $this->upload_url = preg_replace( '#^https?://#', '', $this->upload_dir['baseurl'] );
+        $this->uploadDir = wp_upload_dir();
+        $this->uploadUrl = preg_replace( '#^https?://#', '', $this->uploadDir['baseurl'] );
 
         // add protocol to the upload url.
-        $this->upload_url = $protocol . $this->upload_url;
+        $this->uploadUrl = $this->get_protocol() . $this->uploadUrl;
 
         // post type filter added by user.
-        $this->user_filter = array();
+        $this->userFilter = [];
 
         global $wpdb;
         $this->db = $wpdb;
@@ -146,46 +105,34 @@ class Dynamic_Featured_Image {
 
     /**
      * Return site protocol.
-     *
-     * @since 3.5.1
-     * @access public
-     *
-     * @return string
      */
-    private function get_protocol() {
+    private function get_protocol(): string
+    {
         return is_ssl() ? 'https://' : 'http://';
     }
 
     /**
      * Add required admin scripts.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @see  wp_enqueue_style()
-     * @see  wp_register_script()
-     * @see  wp_enqueue_script()
-     *
-     * @return void
      */
-    public function enqueue_admin_scripts() {
+    public function enqueue_admin_scripts(): void
+    {
         // enqueue styles.
-        wp_enqueue_style( 'style-dfi', plugins_url( '/css/style-dfi.css', __FILE__ ), array(), self::VERSION );
+        wp_enqueue_style( 'style-dfi', plugins_url( '/css/style-dfi.css', __FILE__ ), [], self::VERSION );
 
         // register script.
-        wp_register_script( 'scripts-dfi', plugins_url( '/js/script-dfi.js', __FILE__ ), array( 'jquery' ), self::VERSION );
+        wp_register_script( 'scripts-dfi', plugins_url( '/js/script-dfi.js', __FILE__ ), ['jquery'], self::VERSION );
 
         // localize the script with required data.
         wp_localize_script(
             'scripts-dfi',
             'DFI_SPECIFIC',
-            array(
-                'upload_url'               => $this->upload_url,
-                'metabox_title'            => __( $this->metabox_title, self::TEXT_DOMAIN ),
+            [
+                'uploadUrl'               => $this->uploadUrl,
+                'metaboxTitle'            => __( $this->metaboxTitle, self::TEXT_DOMAIN ),
                 'mediaSelector_title'      => __( 'Dynamic Featured Image - Media Selector', self::TEXT_DOMAIN ),
-                'mediaSelector_buttonText' => __( 'Set Featured Image', self::TEXT_DOMAIN ),
+                'mediaSelector_buttonText' => __( 'Set Image', self::TEXT_DOMAIN ),
                 'ajax_nonce'               => wp_create_nonce( plugin_basename( __FILE__ ) ),
-            )
+            ]
         );
 
         // enqueue scripts.
@@ -195,57 +142,28 @@ class Dynamic_Featured_Image {
     /**
      * Add featured meta boxes dynamically.
      *
-     * @since 1.0.0
-     * @access public
-     * @global object $post
-     *
-     * @see  get_post_meta()
-     * @see  get_post_types()
-     * @see  add_meta_box()
-     * @see  add_filter()
-     *
-     * @return void
+     * @global WP_Post $post
      */
-    public function initialize_featured_box() {
+    public function initialize_featured_box(): void
+    {
         global $post;
 
         // make metabox title dynamic.
-        $this->metabox_title = apply_filters( 'dfi_set_metabox_title', [__( 'Featured Image', self::TEXT_DOMAIN )] );
+        $this->metaboxTitle = apply_filters( 'dfi_set_metaboxTitle', [ __( 'Featured Image', self::TEXT_DOMAIN ) ] );
 
         $featured_data  = get_post_meta( $post->ID, 'dfiFeatured', true );
         $total_featured = is_array( $featured_data ) ? count( $featured_data ) : 0;
 
         $total_featured = apply_filters( 'dfi_total_featured', $total_featured );
         
-        $default_filter    = array( 'attachment', 'revision', 'nav_menu_item' );
-        $this->user_filter = apply_filters( 'dfi_post_type_user_filter', $this->user_filter );
+        $default_filter    = [ 'attachment', 'revision', 'nav_menu_item' ];
+        $this->userFilter = apply_filters( 'dfi_post_type_userFilter', $this->userFilter );
 
-        $post_types = array_diff( get_post_types(), array_merge( $default_filter, $this->user_filter ) );
+        $post_types = array_diff( get_post_types(), array_merge( $default_filter, $this->userFilter ) );
         $post_types = apply_filters( 'dfi_post_types', $post_types );
 
         for ($i = 0; $i <= $total_featured; $i++) {
             $this->dfi_add_meta_box($post_types, $featured_data[$i] ?? null, $i);
-        }
-    }
-
-    /**
-     * Translates more than one digit number digit by digit.
-     *
-     * @param  int $number Integer to be translated.
-     *
-     * @return string Translated number
-     */
-    protected function get_number_translation( $number ) {
-        if ( $number <= 9 ) {
-            return __( $number, self::TEXT_DOMAIN );
-        } else {
-            $pieces = str_split( $number, 1 );
-            $buffer = '';
-            foreach ( $pieces as $piece ) {
-                $buffer .= __( $piece, self::TEXT_DOMAIN );
-            }
-
-            return $buffer;
         }
     }
 
@@ -258,34 +176,35 @@ class Dynamic_Featured_Image {
      *
      * @return void
      */
-    private function dfi_add_meta_box( $post_types, $featured = null, $i = null ) {
+    private function dfi_add_meta_box( array $post_types, ?object $featured = null, ?int $i = null ): void
+    {
         if ( ! is_null( $i ) ) {
             foreach ( $post_types as $type ) {
                 add_meta_box(
                     'dfiFeaturedMetaBox-' . $i,
-                    __( $this->metabox_title[$i] ?? $i, self::TEXT_DOMAIN ),
-                    array( $this, 'featured_meta_box' ),
+                    __( $this->metaboxTitle[$i] ?? $i, self::TEXT_DOMAIN ),
+                    [ $this, 'featured_meta_box' ],
                     $type,
                     apply_filters( 'dfi_metabox_context', 'side' ),
                     apply_filters( 'dfi_metabox_priority', 'low' ),
-                    array( $featured, $i + 1 )
+                    [ $featured, $i + 1 ]
                 );
 
-                add_filter( "postbox_classes_{$type}_dfiFeaturedMetaBox-" . $i, array( $this, 'add_metabox_classes' ) );
+                add_filter( "postbox_classes_{$type}_dfiFeaturedMetaBox-" . $i, [ $this, 'add_metabox_classes' ] );
             }
         } else {
             foreach ( $post_types as $type ) {
                 add_meta_box(
                     'dfiFeaturedMetaBox',
-                    __( $this->metabox_title[$i] ?? $i, self::TEXT_DOMAIN ),
-                    array( $this, 'featured_meta_box' ),
+                    __( $this->metaboxTitle[$i] ?? $i, self::TEXT_DOMAIN ),
+                    [ $this, 'featured_meta_box' ],
                     $type,
                     apply_filters( 'dfi_metabox_context', 'side' ),
                     apply_filters( 'dfi_metabox_priority', 'low' ),
-                    array( null, null )
+                    [ null, null ]
                 );
 
-                add_filter( "postbox_classes_{$type}_dfiFeaturedMetaBox", array( $this, 'add_metabox_classes' ) );
+                add_filter( "postbox_classes_{$type}_dfiFeaturedMetaBox", [ $this, 'add_metabox_classes' ] );
             }
         }
     }
@@ -354,7 +273,7 @@ class Dynamic_Featured_Image {
         $thumbnail     = null;
         $attachment_id = null;
         if ( ! empty( $featured_img_full ) ) {
-            $attachment_id = $this->get_image_id( $this->upload_url . $featured_img_full );
+            $attachment_id = $this->get_image_id( $this->uploadUrl . $featured_img_full );
 
             $thumbnail = $this->get_image_thumb_by_attachment_id( $attachment_id, 'medium' );
 
@@ -390,7 +309,16 @@ class Dynamic_Featured_Image {
         $thumbnail          = ! is_null( $thumbnail ) ? $thumbnail : '';
         $dfi_empty          = is_null( $featured_img_trimmed ) ? 'dfiImgEmpty' : '';
 
-        return "<a href='javascript:void(0)' class='dfiFeaturedImage{$has_featured_image}' title='" . __( 'Set Featured Image', self::TEXT_DOMAIN ) . "' data-post-id='" . $post_id . "' data-attachment-id='" . $attachment_id . "'><span class='dashicons dashicons-camera'></span></a><br/>
+        return "
+            <a 
+                href='javascript:void(0)'
+                class='dfiFeaturedImage{$has_featured_image}'
+                title='" . __( 'Set Featured Image', self::TEXT_DOMAIN ) . "'
+                data-post-id='" . $post_id . "'
+                data-attachment-id='" . $attachment_id . "'
+            >
+                <span class='dashicons dashicons-camera'></span>
+            </a>
             <img src='" . $thumbnail . "' class='dfiImg {$dfi_empty}'/>
             <div class='dfiClearFloat'></div>
             <input type='hidden' name='dfiFeatured[]' value='{$featured_img}'  class='dfiImageHolder' />";
@@ -416,19 +344,30 @@ class Dynamic_Featured_Image {
         // @codingStandardsIgnoreStart
         echo $this->nonce_field( 'dfi_fimageplug-' . $featured_id );
         ?>
-        <a href="javascript:void(0)" class="dfiFeaturedImage"
-           title="<?php echo __( 'Set Featured Image', self::TEXT_DOMAIN ) ?>"><span
-                    class="dashicons dashicons-camera"></span></a><br/>
+        <a 
+            href="javascript:void(0)"
+            class="dfiFeaturedImage"
+            title="<?php echo __( 'Set Featured Image', self::TEXT_DOMAIN ) ?>"
+        >
+            <span class="dashicons dashicons-camera"></span>
+        </a>
         <img src="" class="dfiImg dfiImgEmpty"/>
         <div class="dfiLinks">
-            <a href="javascript:void(0)" data-id="<?php echo $featured_id ?>"
-               data-id-local="<?php echo $this->get_number_translation( $featured_id + 1 ) ?>"
-               class="dfiAddNew dashicons dashicons-plus" title="<?php echo __( 'Add New', self::TEXT_DOMAIN ) ?>"></a>
-            <a href="javascript:void(0)" class="dfiRemove dashicons dashicons-minus"
-               title="<?php echo __( 'Remove', self::TEXT_DOMAIN ) ?>"></a>
+            <a
+                href="javascript:void(0)"
+                data-id="<?php echo $featured_id ?>"
+                data-id-local="<?php echo $this->get_number_translation( $featured_id + 1 ) ?>"
+                class="dfiAddNew dashicons dashicons-plus"
+                title="<?php echo __( 'Add New', self::TEXT_DOMAIN ) ?>"
+            ></a>
+            <a
+                href="javascript:void(0)"
+                class="dfiRemove dashicons dashicons-minus"
+                title="<?php echo __( 'Remove', self::TEXT_DOMAIN ) ?>"
+            ></a>
         </div>
         <div class="dfiClearFloat"></div>
-        <input type="hidden" name="dfiFeatured[]" value="" class="dfiImageHolder"/>
+        <input type="hidden" name="dfiFeatured[]" value="" class="dfiImageHolder" />
         <?php
         // @codingStandardsIgnoreEnd
         wp_die( '' );
@@ -463,11 +402,11 @@ class Dynamic_Featured_Image {
      * @return array
      */
     public function media_attachment_custom_fields( $form_fields, $post ) {
-        $form_fields['dfi-link-to-image'] = array(
+        $form_fields['dfi-link-to-image'] = [
             'label' => __( 'Link to Image', self::TEXT_DOMAIN ),
             'input' => 'text',
             'value' => get_post_meta( $post->ID, '_dfi_link_to_image', true ),
-        );
+        ];
 
         return $form_fields;
     }
@@ -516,7 +455,7 @@ class Dynamic_Featured_Image {
 
         // Check permission before saving data.
         if ( current_user_can( 'edit_posts', $post_id ) && isset( $_POST['dfiFeatured'] ) ) { // WPCS: CSRF ok.
-            $featured_images = is_array( $_POST['dfiFeatured'] ) ? $_POST['dfiFeatured'] : array(); // WPCS: sanitization ok, CSRF ok.
+            $featured_images = is_array( $_POST['dfiFeatured'] ) ? $_POST['dfiFeatured'] : []; // WPCS: sanitization ok, CSRF ok.
 
             update_post_meta( $post_id, 'dfiFeatured', $this->sanitize_array( $featured_images ) );
         }
@@ -533,7 +472,7 @@ class Dynamic_Featured_Image {
      * @return array
      */
     protected function sanitize_array( $input_array ) {
-        $sanitized = array();
+        $sanitized = [];
 
         foreach ( $input_array as $value ) {
             $sanitized[] = sanitize_text_field( wp_unslash( $value ) );
@@ -567,21 +506,6 @@ class Dynamic_Featured_Image {
         }
 
         return true;
-    }
-
-    /**
-     * Add update notice. Displayed in plugin update page.
-     *
-     * @since 2.0.0
-     * @access public
-     *
-     * @return void
-     */
-    public function update_notice() {
-        $info = __( 'ATTENTION! Please read the <a href="' . self::WIKI_LINK . '" target="_blank">DOCUMENTATION</a> properly before update.',
-        self::TEXT_DOMAIN );
-
-        echo '<span style="color: red; padding: 7px 0; display: block">' . strip_tags( $info, '<a><b><i><span>' ) . '</span>'; // WPCS: XSS ok.
     }
 
     /**
@@ -699,7 +623,7 @@ class Dynamic_Featured_Image {
             }
 
             // Fallback.
-            $image_url = str_replace( $this->upload_url . '/', '', $image_url );
+            $image_url = str_replace( $this->uploadUrl . '/', '', $image_url );
 
             $row = $this->execute_query( $this->db->prepare( 'SELECT post_id FROM ' . $this->db->postmeta . ' WHERE meta_key = %s AND meta_value = %s', '_wp_attached_file', $image_url ) );
             if ( ! is_null( $row ) ) {
@@ -863,12 +787,12 @@ class Dynamic_Featured_Image {
      */
     public function get_post_attachment_ids( $post_id ) {
         $dfi_images = get_post_meta( $post_id, 'dfiFeatured', true );
-        $ret_val    = array();
+        $ret_val    = [];
 
         if ( ! empty( $dfi_images ) && is_array( $dfi_images ) ) {
             foreach ( $dfi_images as $dfi_image ) {
                 $dfi_image_full = $this->separate( $dfi_image, 'full' );
-                $ret_val[]      = (int) $this->get_image_id( $this->upload_url . $dfi_image_full );
+                $ret_val[]      = (int) $this->get_image_id( $this->uploadUrl . $dfi_image_full );
             }
         }
 
@@ -954,7 +878,7 @@ class Dynamic_Featured_Image {
     public function get_featured_images( $post_id = null ) {
         $post_id    = $this->get_real_post_id( $post_id );
         $dfi_images = get_post_meta( $post_id, 'dfiFeatured', true );
-        $ret_images = array();
+        $ret_images = [];
 
         if ( ! empty( $dfi_images ) && is_array( $dfi_images ) ) {
             $dfi_images = array_filter( $dfi_images );
@@ -991,11 +915,11 @@ class Dynamic_Featured_Image {
      */
     protected function get_real_upload_path( $img ) {
         // check if upload path is already attached.
-        if ( false !== strpos( $img, $this->upload_url ) || preg_match( '/https?:\/\//', $img ) ) {
+        if ( false !== strpos( $img, $this->uploadUrl ) || preg_match( '/https?:\/\//', $img ) ) {
             return $img;
         }
 
-        return $this->upload_url . $img;
+        return $this->uploadUrl . $img;
     }
 
     /**
@@ -1013,14 +937,14 @@ class Dynamic_Featured_Image {
     public function get_all_featured_images( $post_id = null ) {
         $post_id      = $this->get_real_post_id( $post_id );
         $thumbnail_id = get_post_thumbnail_id( $post_id );
-        $all_images   = array();
+        $all_images   = [];
 
         if ( ! empty( $thumbnail_id ) ) {
-            $featured_image         = array(
+            $featured_image         = [
                 'thumb'         => wp_get_attachment_thumb_url( $thumbnail_id ),
                 'full'          => wp_get_attachment_url( $thumbnail_id ),
                 'attachment_id' => $thumbnail_id,
-            );
+            ];
 
             $all_images[] = $featured_image;
         }
@@ -1030,17 +954,6 @@ class Dynamic_Featured_Image {
 
     /**
      * Load the plugin's textdomain hooked to 'plugins_loaded'.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @see    load_plugin_textdomain()
-     * @see    plugin_basename()
-     * @action plugins_loaded
-     *
-     * @codeCoverageIgnore
-     *
-     * @return void
      */
     public function load_plugin_textdomain() {
         load_plugin_textdomain(
@@ -1051,16 +964,10 @@ class Dynamic_Featured_Image {
     }
 }
 
-// Sponsors who support this plugin.
-include 'sponsors.php';
-
 /**
  * Instantiate the main class.
  *
- * @since 1.0.0
- * @access public
- *
- * @var object $dynamic_featured_image holds the instantiated class {@uses Dynamic_Featured_Image}
+ * @var GADynamicFeaturedImage $dynamic_featured_image holds the instantiated class {@uses GADynamicFeaturedImage}
  */
 global $dynamic_featured_image;
-$dynamic_featured_image = new Dynamic_Featured_Image();
+$dynamic_featured_image = new GADynamicFeaturedImage();

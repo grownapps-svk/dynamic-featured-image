@@ -12,32 +12,28 @@
 }
 
 .dfiRemove {
-    float: right;
+  float: right;
 }
 
-.dfiLinks{
-    padding: 2px 0;
+.dfiLinks {
+  padding: 2px 0;
 }
 
 .dfiClearFloat {
-    clear: both;
-}
-
-.featured-meta-box a:not(.hasFeaturedImage):not(.dfiAddNew) {
-    display: inline-block !important;
-    margin: 3px 0;
+  clear: both;
 }
 
 img.dfiImg {
-    max-width: 258px;
+  max-width: 258px;
+  width: 100%;
 }
 
-img.dfiImg[src=""]{
+img.dfiImg[src=""] {
   display: none;
 }
 
 img.dfiImgEmpty {
-    display: none;
+  display: none;
 }
 
 .dfiLoading {
@@ -56,14 +52,15 @@ img.dfiImgEmpty {
   margin: 10px 0 !important;
   padding: 10px;
   text-align: center;
-  width: 235px;
+  width: auto;
+  display: block;
 }
 
-.dfiFeaturedImage:hover{
-    border-color: #999;
+.dfiFeaturedImage:hover {
+  border-color: #999;
 }
 
-.dfiFeaturedImage > span {
+.dfiFeaturedImage>span {
   display: inline-block;
   font-size: 54px;
   margin-top: 17%;
@@ -78,7 +75,7 @@ img.dfiImgEmpty {
   position: absolute;
   top: 30%;
   left: 37%;
-  display: none;
+  display: block;
   z-index: 999;
 }
 
@@ -86,6 +83,7 @@ img.dfiImgEmpty {
   text-decoration: none !important;
 }
 
-.dashicons:hover, .dfiFeaturedImage:hover {
+.dashicons:hover,
+.dfiFeaturedImage:hover {
   color: #2ea2cc !important;
 }

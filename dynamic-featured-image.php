@@ -318,7 +318,15 @@ class GADynamicFeaturedImage
             >
                 <span class='dashicons dashicons-camera'></span>
             </a>
+            <br/>
             <img src='" . $thumbnail . "' class='dfiImg {$dfi_empty}'/>
+            <div class='dfiLinks'>
+                <a 
+                    href='javascript:void(0)'
+                    class='dfiRemove dashicons dashicons-minus'
+                    title='" . __( 'Remove', self::TEXT_DOMAIN ) . "'>
+                </a>
+            </div>
             <div class='dfiClearFloat'></div>
             <input type='hidden' name='dfiFeatured[]' value='{$featured_img}'  class='dfiImageHolder' />";
     }

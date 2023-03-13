@@ -6,7 +6,7 @@
  * Copyright (c) 2013, Ankit Pokhrel <ankitpokhrel@gmail.com, http://ankitpokhrel.com.np>
  */
 
-.dfiAddNew {
+ .dfiAddNew {
   float: left;
   margin-top: 3px;
 }
@@ -23,13 +23,9 @@
     clear: both;
 }
 
-.featured-meta-box a:not(.hasFeaturedImage):not(.dfiAddNew) {
-    display: inline-block !important;
-    margin: 3px 0;
-}
-
 img.dfiImg {
     max-width: 258px;
+    width: 100%;
 }
 
 img.dfiImg[src=""]{
@@ -56,7 +52,8 @@ img.dfiImgEmpty {
   margin: 10px 0 !important;
   padding: 10px;
   text-align: center;
-  width: 235px;
+  width: auto;
+  display: block;
 }
 
 .dfiFeaturedImage:hover{
@@ -78,7 +75,7 @@ img.dfiImgEmpty {
   position: absolute;
   top: 30%;
   left: 37%;
-  display: none;
+  display: block;
   z-index: 999;
 }
 

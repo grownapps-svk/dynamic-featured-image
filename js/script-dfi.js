@@ -66,4 +66,21 @@ window.addEventListener('load', () => {
             return false;
         });
     }
+
+    let dfiRemove = document.querySelectorAll('.dfiRemove');
+
+    for (let removeButton of dfiRemove) {
+        removeButton.addEventListener('click', function (ev) {
+            ev.preventDefault();
+
+            if (confirm('Are you sure?')) {
+                let dfiMetaBox = removeButton.closest('.featured-meta-box');
+
+                dfiMetaBox.querySelector('.dfiImg').setAttribute('src', '');
+                dfiMetaBox.querySelector('.dfiImageHolder').value = '';
+                dfiMetaBox.querySelector('.dfiFeaturedImage')
+                    .classList.remove('hasFeaturedImage');
+            }
+        });
+    }
 });

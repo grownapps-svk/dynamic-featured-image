@@ -35,8 +35,7 @@ window.addEventListener('load', () => {
 
                 let featuredBox = featuredImage.closest('.inside');
 
-                featuredBox.querySelector('.dfiImg').setAttribute('src', imgUrl);
-                featuredBox.querySelector('.dfiImg').setAttribute('data-src', fullSize);
+                featuredBox.querySelector('.dfiFeaturedImage').style.backgroundImage = 'url(' + imgUrl + ')';
 
                 featuredBox.querySelector('.dfiFeaturedImage').classList.add('hasFeaturedImage');
 
@@ -48,7 +47,6 @@ window.addEventListener('load', () => {
                     medium = attachment.sizes.medium.url;
                 }
 
-                featuredBox.querySelector('img').setAttribute('src', medium);
                 featuredBox.querySelector('input.dfiImageHolder').value = dfiFeaturedImages;
             });
 
@@ -76,10 +74,9 @@ window.addEventListener('load', () => {
             if (confirm('Are you sure?')) {
                 let dfiMetaBox = removeButton.closest('.featured-meta-box');
 
-                dfiMetaBox.querySelector('.dfiImg').setAttribute('src', '');
+                dfiMetaBox.querySelector('.dfiFeaturedImage').style.backgroundImage = '';
+                dfiMetaBox.querySelector('.dfiFeaturedImage').classList.remove('hasFeaturedImage');
                 dfiMetaBox.querySelector('.dfiImageHolder').value = '';
-                dfiMetaBox.querySelector('.dfiFeaturedImage')
-                    .classList.remove('hasFeaturedImage');
             }
         });
     }

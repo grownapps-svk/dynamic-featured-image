@@ -311,15 +311,15 @@ class GADynamicFeaturedImage
         return "
             <a 
                 href='javascript:void(0)'
-                class='dfiFeaturedImage{$has_featured_image}'
+                class='dfiFeaturedImage{$has_featured_image} {$dfi_empty}'
                 title='" . __( 'Set Featured Image', self::TEXT_DOMAIN ) . "'
                 data-post-id='" . $post_id . "'
                 data-attachment-id='" . $attachment_id . "'
+                style='background-image: url({$thumbnail})'
             >
                 <span class='dashicons dashicons-camera'></span>
             </a>
             <br/>
-            <img src='" . $thumbnail . "' class='dfiImg {$dfi_empty}'/>
             <div class='dfiLinks'>
                 <a 
                     href='javascript:void(0)'
